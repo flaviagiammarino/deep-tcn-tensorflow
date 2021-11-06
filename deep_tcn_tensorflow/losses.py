@@ -12,7 +12,7 @@ def nonparametric_loss(y_true, y_pred, q):
         the batch size, n_forecast is the length of output sequences and n_targets is the number of target time series.
 
     y_pred: tf.Tensor.
-        Predicted quantiles of target time series, a tensor with shape (n_samples, n_forecast, n_targets x n_quantiles)
+        Predicted quantiles of target time series, a tensor with shape (n_samples, n_forecast, n_targets, n_quantiles)
         where n_samples is the batch size, n_forecast is the length of output sequences, n_targets is the number of
         target time series and n_quantiles is the number of quantiles.
 

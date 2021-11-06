@@ -98,7 +98,7 @@ def plot(df, q, n_targets, n_quantiles):
                     showlegend=False,
                     mode='lines',
                     line=dict(
-                        color='rgba(5, 80, 174, 0.1)',
+                        color='rgba(5, 80, 174, ' + str(0.1 * (j + 1))  + ')',
                         width=1
                     )
                 ),
@@ -114,10 +114,10 @@ def plot(df, q, n_targets, n_quantiles):
                     showlegend=True if i == 0 else False,
                     mode='lines',
                     fill='tonexty',
-                    fillcolor='rgba(5, 80, 174, 0.1)',
+                    fillcolor='rgba(5, 80, 174, ' + str(0.1 * (j + 1)) + ')',
                     line=dict(
                         width=0.25,
-                        color='rgba(5, 80, 174, 0.1)',
+                        color='rgba(5, 80, 174, ' + str(0.1 * (j + 1)) + ')',
                     ),
                 ),
                 row=i + 1,

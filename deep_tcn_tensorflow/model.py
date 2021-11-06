@@ -18,7 +18,7 @@ class DeepTCN():
                  x=None,
                  forecast_period=1,
                  lookback_period=2,
-                 quantiles=[0.005, 0.5, 0.995],
+                 quantiles=[0.1, 0.5, 0.9],
                  filters=32,
                  kernel_size=2,
                  dilation_rates=[1, 2, 4, 8],
@@ -106,24 +106,26 @@ class DeepTCN():
             raise ValueError('The quantiles must be provided as a list.')
 
         if len(q) == 0:
-            quantiles = np.array([0.005, 0.5, 0.995])
-            warnings.warn('The quantiles were not provided, using [0.005, 0.5, 0.995].')
+            quantiles = np.array([0.1, 0.5, 0.9])
+            warnings.warn('The quantiles were not provided, using [0.1, 0.5, 0.9].')
 
         if 0.5 not in quantiles:
             quantiles = np.sort(np.append(0.5, quantiles))
 
-        # Normalize the features and targets
+        # Normalize the targets.
         y_min, y_max = np.min(y, axis=0), np.max(y, axis=0)
         y = (y - y_min) / (y_max - y_min)
         self.y_min = y_min
         self.y_max = y_max
 
+        # Normalize the features.
         if x is not None:
             x_min, x_max = np.min(x, axis=0), np.max(x, axis=0)
             x = (x - x_min) / (x_max - x_min)
             self.x_min = x_min
             self.x_max = x_max
 
+        # Save the inputs.
         self.y = y
         self.x = x
         self.n_features = x.shape[1] if x is not None else 0
@@ -157,7 +159,8 @@ class DeepTCN():
                 filters=filters,
                 kernel_size=kernel_size,
                 dilation_rates=dilation_rates,
-                units=units)
+                units=units
+            )
 
         else:
 
@@ -178,7 +181,8 @@ class DeepTCN():
                 n_forecast=self.n_forecast,
                 filters=filters,
                 kernel_size=kernel_size,
-                dilation_rates=dilation_rates)
+                dilation_rates=dilation_rates
+            )
 
     def fit(self,
             learning_rate=0.001,
@@ -258,7 +262,6 @@ class DeepTCN():
             y_pred = self.model.predict([self.x_encoder, self.x_decoder, self.y_encoder])
         else:
             y_pred = self.model.predict(self.y_encoder)
-
         y_pred = y_pred[index - self.n_lookback: index - self.n_lookback + 1, :, :, :]
 
         # Organize the predictions in a data frame.
