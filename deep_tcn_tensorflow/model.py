@@ -1,6 +1,8 @@
 import warnings
 import pandas as pd
 import numpy as np
+import tensorflow as tf
+import tensorflow_probability as tfp
 from tensorflow.keras.layers import Input, Dense, Lambda, Reshape, concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
@@ -8,7 +10,7 @@ pd.options.mode.chained_assignment = None
 
 from deep_tcn_tensorflow.modules import encoder, decoder
 from deep_tcn_tensorflow.utils import get_training_sequences_with_covariates, get_training_sequences
-from deep_tcn_tensorflow.losses import nonparametric_loss
+from deep_tcn_tensorflow.losses import parametric_loss, nonparametric_loss
 from deep_tcn_tensorflow.plots import plot
 
 class DeepTCN():
@@ -22,7 +24,8 @@ class DeepTCN():
                  filters=32,
                  kernel_size=2,
                  dilation_rates=[1, 2, 4, 8],
-                 units=64):
+                 units=64,
+                 loss='nonparametric'):
 
         '''
         Implementation of multivariate time series forecasting model introduced in Chen, Y., Kang, Y., Chen, Y., &
@@ -54,11 +57,14 @@ class DeepTCN():
         kernel_size: int.
             Kernel size of the convolutional layers in the encoder module.
 
-        dilation_rate: int.
+        dilation_rates: list.
             Dilation rates of the convolutional layers in the encoder module.
 
         units: int.
             Hidden units of dense layers in the decoder module.
+
+        loss: str.
+            The loss function, either 'nonparametric' or 'parametric'.
         '''
 
         if type(y) != np.ndarray:
@@ -106,7 +112,7 @@ class DeepTCN():
             raise ValueError('The quantiles must be provided as a list.')
 
         if len(q) == 0:
-            quantiles = np.array([0.1, 0.5, 0.9])
+            quantiles = [0.1, 0.5, 0.9]
             warnings.warn('The quantiles were not provided, using [0.1, 0.5, 0.9].')
 
         if 0.5 not in quantiles:
@@ -128,11 +134,13 @@ class DeepTCN():
         # Save the inputs.
         self.y = y
         self.x = x
-        self.n_features = x.shape[1] if x is not None else 0
         self.q = np.array(quantiles)
+        self.loss = loss
+        self.n_outputs = 2 if loss == 'parameteric' else len(self.q)
+        self.n_features = x.shape[1] if x is not None else 0
         self.n_samples = y.shape[0]
         self.n_targets = y.shape[1]
-        self.n_quantiles = len(quantiles)
+        self.n_quantiles = len(self.q)
         self.n_lookback = lookback_period
         self.n_forecast = forecast_period
 
@@ -153,13 +161,14 @@ class DeepTCN():
             self.model = build_fn_with_covariates(
                 n_targets=self.n_targets,
                 n_features=self.n_features,
-                n_quantiles=self.n_quantiles,
+                n_outputs=self.n_outputs,
                 n_lookback=self.n_lookback,
                 n_forecast=self.n_forecast,
                 filters=filters,
                 kernel_size=kernel_size,
                 dilation_rates=dilation_rates,
-                units=units
+                units=units,
+                loss=self.loss
             )
 
         else:
@@ -176,12 +185,13 @@ class DeepTCN():
             # Build the model graph.
             self.model = build_fn(
                 n_targets=self.n_targets,
-                n_quantiles=self.n_quantiles,
+                n_outputs=self.n_outputs,
                 n_lookback=self.n_lookback,
                 n_forecast=self.n_forecast,
                 filters=filters,
                 kernel_size=kernel_size,
-                dilation_rates=dilation_rates
+                dilation_rates=dilation_rates,
+                loss=self.loss
             )
 
     def fit(self,
@@ -196,23 +206,31 @@ class DeepTCN():
         Parameters:
         __________________________________
         learning_rate: float.
-            Learning rate, the default is 0.001.
+            Learning rate.
 
         batch_size: int.
-            Batch size, the default is 32.
+            Batch size.
 
         epochs: int.
-            Number of epochs, the default is 100.
+            Number of epochs.
 
         validation_split: float.
-            Fraction of the training data to be used as validation data, must be between 0 and 1. The default is 0.
+            Fraction of the training data to be used as validation data, must be between 0 and 1.
         '''
 
         # Compile the model.
-        self.model.compile(
-            optimizer=Adam(learning_rate=learning_rate),
-            loss=lambda y_true, y_pred: nonparametric_loss(y_true, y_pred, self.q)
-        )
+        if self.loss == 'parametric':
+
+            self.model.compile(
+                optimizer=Adam(learning_rate=learning_rate),
+                loss=parametric_loss,
+            )
+
+        else:
+            self.model.compile(
+                optimizer=Adam(learning_rate=learning_rate),
+                loss=lambda y_true, y_pred: nonparametric_loss(y_true, y_pred, self.q)
+            )
 
         # Fit the model.
         if self.x is not None:
@@ -262,6 +280,7 @@ class DeepTCN():
             y_pred = self.model.predict([self.x_encoder, self.x_decoder, self.y_encoder])
         else:
             y_pred = self.model.predict(self.y_encoder)
+
         y_pred = y_pred[index - self.n_lookback: index - self.n_lookback + 1, :, :, :]
 
         # Organize the predictions in a data frame.
@@ -275,7 +294,11 @@ class DeepTCN():
         for i in range(self.n_targets):
             predictions['target_' + str(i + 1)] = self.y_min[i] + (self.y_max[i] - self.y_min[i]) * self.y[:, i]
             for j in range(self.n_quantiles):
-                predictions['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[index: index + self.n_forecast] = \
+                if self.loss == 'parametric':
+                    predictions['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[index: index + self.n_forecast] = \
+                    self.y_min[i] + (self.y_max[i] - self.y_min[i]) * norm_ppf(y_pred[:, :, i, 0], y_pred[:, :, i, 1], self.q[j])
+                else:
+                    predictions['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[index: index + self.n_forecast] = \
                     self.y_min[i] + (self.y_max[i] - self.y_min[i]) * y_pred[:, :, i, j].flatten()
 
         predictions = predictions.astype(float)
@@ -294,8 +317,8 @@ class DeepTCN():
         Parameters:
         __________________________________
         x: np.array.
-            Features time series, array with shape (n_forecast, n_features) where n_forecast is the length of the
-            forecast period (decoder length) and n_features is the number of features time series.
+            Features time series, array with shape (n_forecast, n_features) where n_forecast is the length
+            of the forecast period (decoder length) and n_features is the number of features time series.
 
         Returns:
         __________________________________
@@ -340,7 +363,11 @@ class DeepTCN():
             forecasts['target_' + str(i + 1)].iloc[: - self.n_forecast] = \
                 self.y_min[i] + (self.y_max[i] - self.y_min[i]) * self.y[:, i]
             for j in range(self.n_quantiles):
-                forecasts['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[- self.n_forecast:] = \
+                if self.loss == 'parametric':
+                    forecasts['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[- self.n_forecast:] = \
+                    self.y_min[i] + (self.y_max[i] - self.y_min[i]) * norm_ppf(y_pred[:, :, i, 0], y_pred[:, :, i, 1], self.q[j])
+                else:
+                    forecasts['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[- self.n_forecast:] = \
                     self.y_min[i] + (self.y_max[i] - self.y_min[i]) * y_pred[:, :, i, j].flatten()
 
         forecasts = forecasts.astype(float)
@@ -379,13 +406,14 @@ class DeepTCN():
 def build_fn_with_covariates(
         n_targets,
         n_features,
-        n_quantiles,
+        n_outputs,
         n_lookback,
         n_forecast,
         filters,
         kernel_size,
         dilation_rates,
-        units):
+        units,
+        loss):
 
     '''
     Build the model graph with covariates.
@@ -398,8 +426,10 @@ def build_fn_with_covariates(
     n_features: int.
         Number of features time series.
 
-    n_quantiles: int.
-        Number of quantiles.
+    n_outputs: int.
+        Number of outputs, equal to 2 when the loss is parametric (in which case the two outputs are the mean
+        and standard deviation of the Normal distribution), equal to the number of quantiles when the loss is
+        nonparametric.
 
     n_lookback: int
         Length of input sequences.
@@ -418,6 +448,9 @@ def build_fn_with_covariates(
 
     units: int.
         Hidden units of dense layers in the decoder module.
+
+    loss: str.
+        The loss function, either 'nonparametric' or 'parametric'.
     '''
 
     # Define the inputs.
@@ -457,22 +490,27 @@ def build_fn_with_covariates(
         units=units)
 
     # Forward pass the decoder outputs through the dense layer.
-    decoder_ouput = Dense(units=n_targets * n_quantiles)(decoder_ouput)
+    decoder_ouput = Dense(units=n_targets * n_outputs)(decoder_ouput)
 
     # Reshape the decoder output to match the shape required by the loss function.
-    y_decoder = Reshape(target_shape=(n_forecast, n_targets, n_quantiles))(decoder_ouput)
+    y_decoder = Reshape(target_shape=(n_forecast, n_targets, n_outputs))(decoder_ouput)
+
+    # If using the parametric loss, apply the soft ReLU activation to ensure a positive standard deviation.
+    if loss == 'parametric':
+        y_decoder = Lambda(function=lambda x: tf.stack([x[:, :, :, 0], soft_relu(x[:, :, :, 1])], axis=-1))(y_decoder)
 
     return Model([x_encoder, x_decoder, y_encoder], y_decoder)
 
 
 def build_fn(
         n_targets,
-        n_quantiles,
+        n_outputs,
         n_lookback,
         n_forecast,
         filters,
         kernel_size,
-        dilation_rates):
+        dilation_rates,
+        loss):
 
     '''
     Build the model graph without covariates.
@@ -482,8 +520,10 @@ def build_fn(
     n_targets: int
         Number of target time series.
 
-    n_quantiles: int.
-        Number of quantiles.
+    n_outputs: int.
+        Number of outputs, equal to 2 when the loss is parametric (in which case the two outputs are the mean
+        and standard deviation of the Normal distribution), equal to the number of quantiles when the loss is
+        nonparametric.
 
     n_lookback: int
         Length of input sequences.
@@ -499,6 +539,9 @@ def build_fn(
 
     dilation_rate: int.
         Dilation rates of the convolutional layers in the encoder module.
+
+    loss: str.
+        The loss function, either 'nonparametric' or 'parametric'.
     '''
 
     # Define the inputs.
@@ -527,9 +570,32 @@ def build_fn(
     encoder_output = Lambda(function=lambda x: x[:, - n_forecast:, :])(encoder_output)
 
     # Forward pass the encoder outputs through the dense layer.
-    encoder_output = Dense(units=n_targets * n_quantiles)(encoder_output)
+    encoder_output = Dense(units=n_targets * n_outputs)(encoder_output)
 
     # Reshape the encoder output to match the shape required by the loss function.
-    y_decoder = Reshape(target_shape=(n_forecast, n_targets, n_quantiles))(encoder_output)
+    y_decoder = Reshape(target_shape=(n_forecast, n_targets, n_outputs))(encoder_output)
+
+    # If using the parametric loss, apply the soft ReLU activation to ensure a positive standard deviation.
+    if loss == 'parametric':
+        y_decoder = Lambda(function=lambda x: tf.stack([x[:, :, :, 0], soft_relu(x[:, :, :, 1])], axis=-1))(y_decoder)
 
     return Model(y_encoder, y_decoder)
+
+
+def soft_relu(x):
+    '''
+    Soft ReLU activation function, used for ensuring the positivity of the standard deviation of the Normal distribution
+    when using the parameteric loss function. See Section 3.2.2 in the DeepTCN paper.
+    '''
+
+    return tf.math.log(1.0 + tf.math.exp(x))
+
+def norm_ppf(loc, scale, value):
+
+    '''
+    Quantiles of the Normal distribution.
+    '''
+
+    return tfp.distributions.Normal(loc, scale).quantile(value).numpy().flatten()
+
+
