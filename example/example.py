@@ -4,10 +4,10 @@ from deep_tcn_tensorflow.model import DeepTCN
 # Generate two time series
 N = 1000
 t = np.linspace(0, 1, N)
-e = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.5], [0.5, 1]], size=N)
-x = 40 * t + 20 * np.cos(2 * np.pi * (10 * t - 0.5)) + e[:, 0]
-z = 60 * t + 30 * np.sin(2 * np.pi * (20 * t - 0.5)) + e[:, 1]
-y = np.hstack([x.reshape(- 1, 1), z.reshape(- 1, 1)])
+e = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.25], [0.25, 1]], size=N)
+a = 40 + 30 * t + 20 * np.cos(2 * np.pi * (10 * t - 0.5)) + e[:, 0]
+b = 50 + 40 * t + 30 * np.sin(2 * np.pi * (20 * t - 0.5)) + e[:, 1]
+y = np.hstack([a.reshape(- 1, 1), b.reshape(- 1, 1)])
 
 # Fit the model
 model = DeepTCN(
@@ -15,17 +15,17 @@ model = DeepTCN(
     x=None,
     forecast_period=100,
     lookback_period=200,
-    quantiles=[0.05, 0.25, 0.5, 0.75, 0.95],
-    filters=8,
+    quantiles=[0.005, 0.05, 0.5, 0.95, 0.995],
+    filters=4,
     kernel_size=3,
-    dilation_rates=[1, 2, 4],
-    loss='parametric'
+    dilation_rates=[1, 2],
+    loss='nonparametric'
 )
 
 model.fit(
     learning_rate=0.01,
     batch_size=64,
-    epochs=100,
+    epochs=200,
 )
 
 # Plot the in-sample predictions
