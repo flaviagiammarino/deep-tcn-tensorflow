@@ -69,6 +69,9 @@ class DeepTCN():
         if type(y) != np.ndarray:
             raise ValueError('The target time series must be provided as a numpy array.')
 
+        elif np.isnan(y).sum() != 0:
+            raise ValueError('The target time series cannot contain missing values.')
+
         if len(y.shape) > 2:
             raise ValueError('The targets array cannot have more than 2 dimensions. Found {} dimensions.'.format(len(y.shape)))
 
@@ -79,6 +82,9 @@ class DeepTCN():
 
             if type(x) != np.ndarray:
                 raise ValueError('The features time series must be provided as a numpy array.')
+
+            elif np.isnan(x).sum() != 0:
+                raise ValueError('The features time series cannot contain missing values.')
 
             if len(x.shape) > 2:
                 raise ValueError('The features array cannot have more than 2 dimensions. Found {} dimensions.'.format(len(x.shape)))
@@ -331,6 +337,9 @@ class DeepTCN():
 
             if type(x) != np.ndarray:
                 raise ValueError('The features time series must be provided as a numpy array.')
+
+            elif np.isnan(x).sum() != 0:
+                raise ValueError('The features time series cannot contain missing values.')
 
             if len(x.shape) == 1:
                 x = np.expand_dims(x, axis=1)

@@ -10,11 +10,11 @@ def nonparametric_loss(y_true, y_pred, q):
     __________________________________
     y_true: tf.Tensor.
         Actual values of target time series, a tensor with shape (n_samples, n_forecast, n_targets) where n_samples is
-        the batch size, n_forecast is the length of output sequences and n_targets is the number of target time series.
+        the batch size, n_forecast is the length of the output sequences and n_targets is the number of target time series.
 
     y_pred: tf.Tensor.
         Predicted quantiles of target time series, a tensor with shape (n_samples, n_forecast, n_targets, n_quantiles)
-        where n_samples is the batch size, n_forecast is the length of output sequences, n_targets is the number of
+        where n_samples is the batch size, n_forecast is the length of the output sequences, n_targets is the number of
         target time series and n_quantiles is the number of quantiles.
 
     q: tf.Tensor.
@@ -46,11 +46,11 @@ def parametric_loss(y_true, params):
     __________________________________
     y_true: tf.Tensor.
         Actual values of target time series, a tensor with shape (n_samples, n_forecast, n_targets) where n_samples is
-        the batch size, n_forecast is the length of output sequences and n_targets is the number of target time series.
+        the batch size, n_forecast is the length of the output sequences and n_targets is the number of target time series.
 
     params: tf.Tensor.
         Predicted means and standard deviations of target time series, a tensor with shape (n_samples, n_forecast,
-        n_targets, 2) where n_samples is the batch size, n_forecast is the length of output sequences and n_targets
+        n_targets, 2) where n_samples is the batch size, n_forecast is the length of the output sequences and n_targets
         is the number of target time series.
 
     Returns:
