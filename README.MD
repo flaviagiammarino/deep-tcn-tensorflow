@@ -19,9 +19,10 @@ from deep_tcn_tensorflow.model import DeepTCN
 # Generate two time series
 N = 1000
 t = np.linspace(0, 1, N)
-e = np.random.multivariate_normal(mean=[0, 0], cov=[[15, 10.5], [10.5, 15]], size=N)
-s = np.array([50 + 25 * np.cos(2 * np.pi * (10 * t - 0.5)), 100 + 50 * np.sin(2 * np.pi * (20 * t - 0.5))]).T
-y = s + e
+e = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.5], [0.5, 1]], size=N)
+x = 40 * t + 20 * np.cos(2 * np.pi * (10 * t - 0.5)) + e[:, 0]
+z = 60 * t + 30 * np.sin(2 * np.pi * (20 * t - 0.5)) + e[:, 1]
+y = np.hstack([x.reshape(- 1, 1), z.reshape(- 1, 1)])
 
 # Fit the model
 model = DeepTCN(
@@ -29,14 +30,15 @@ model = DeepTCN(
     x=None,
     forecast_period=100,
     lookback_period=200,
-    quantiles=[0.1, 0.5, 0.9],
+    quantiles=[0.05, 0.25, 0.5, 0.75, 0.95],
     filters=8,
-    kernel_size=2,
-    dilation_rates=[1, 2, 4, 8],
+    kernel_size=3,
+    dilation_rates=[1, 2, 4],
+    loss='parametric'
 )
 
 model.fit(
-    learning_rate=0.001,
+    learning_rate=0.01,
     batch_size=64,
     epochs=100,
 )
