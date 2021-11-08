@@ -40,7 +40,7 @@ def encoder(encoder_input, filters, kernel_size, dilation_rate):
     # Adjust the width of the encoder input if it is different from the width of
     # the encoder output, see Section 3.4 in https://arxiv.org/abs/1803.01271.
     if encoder_input.shape[-1] != encoder_output.shape[-1]:
-        encoder_input = Conv1D(filters=1, kernel_size=1)(encoder_input)
+        encoder_input = Conv1D(filters=1, kernel_size=1, padding='causal')(encoder_input)
 
     encoder_output = Add()([encoder_input, encoder_output])
     encoder_output = ReLU()(encoder_output)

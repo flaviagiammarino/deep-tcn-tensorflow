@@ -1,4 +1,3 @@
-import warnings
 import pandas as pd
 import numpy as np
 import tensorflow as tf
@@ -99,24 +98,25 @@ class DeepTCN():
         if forecast_period + lookback_period >= y.shape[0]:
             raise ValueError('The combined length of the forecast and lookback periods must be less than the length of the time series.')
 
+        if loss not in ['parametric', 'nonparametric']:
+            raise ValueError('Undefined loss function {}.'.format(loss))
+
         if type(dilation_rates) != list:
             raise ValueError('The dilation rates must be provided as a list.')
 
         elif len(dilation_rates) == 0:
-            dilation_rates = [1, 2, 4, 8]
-            warnings.warn('The dilation rates were not provided, using [1, 2, 4, 8].')
+            raise ValueError('No dilation rates were provided.')
 
-        if type(quantiles) == list:
-            q = np.array(quantiles)
-        else:
+        if type(quantiles) != list:
             raise ValueError('The quantiles must be provided as a list.')
 
-        if len(q) == 0:
-            quantiles = [0.1, 0.5, 0.9]
-            warnings.warn('The quantiles were not provided, using [0.1, 0.5, 0.9].')
+        elif len(quantiles) == 0:
+            raise ValueError('No quantiles were provided.')
 
-        if 0.5 not in quantiles:
-            quantiles = np.sort(np.append(0.5, quantiles))
+        # Extract the quantiles
+        q = np.array(quantiles)
+        if 0.5 not in q:
+            q = np.sort(np.append(0.5, q))
 
         # Normalize the targets.
         y_min, y_max = np.min(y, axis=0), np.max(y, axis=0)
@@ -134,13 +134,13 @@ class DeepTCN():
         # Save the inputs.
         self.y = y
         self.x = x
-        self.q = np.array(quantiles)
+        self.q = q
         self.loss = loss
-        self.n_outputs = 2 if loss == 'parameteric' else len(self.q)
+        self.n_outputs = 2 if loss == 'parametric' else len(self.q)
         self.n_features = x.shape[1] if x is not None else 0
         self.n_samples = y.shape[0]
         self.n_targets = y.shape[1]
-        self.n_quantiles = len(self.q)
+        self.n_quantiles = len(q)
         self.n_lookback = lookback_period
         self.n_forecast = forecast_period
 
@@ -227,6 +227,7 @@ class DeepTCN():
             )
 
         else:
+
             self.model.compile(
                 optimizer=Adam(learning_rate=learning_rate),
                 loss=lambda y_true, y_pred: nonparametric_loss(y_true, y_pred, self.q)
