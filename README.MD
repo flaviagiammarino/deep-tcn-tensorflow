@@ -9,6 +9,7 @@ TensorFlow (Python) implementation of multivariate time series forecasting model
 pandas==1.3.4
 numpy==1.19.5
 tensorflow==2.6.0
+tensorflow_probability==0.14.1
 plotly==5.3.1
 ```
 ### Usage
