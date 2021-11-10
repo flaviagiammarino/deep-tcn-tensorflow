@@ -96,13 +96,13 @@ class DeepTCN():
                 raise ValueError('The targets and features time series must have the same length.')
 
         if forecast_period < 1:
-            raise ValueError('The length of the forecast period should be greater than or equal to one.')
+            raise ValueError('The length of the forecast period should be greater than one.')
 
         if lookback_period < forecast_period:
-            raise ValueError('The length of the lookback period must be greater than the length of the forecast period.')
+            raise ValueError('The lookback period cannot be shorter than the forecast period.')
 
         if forecast_period + lookback_period >= y.shape[0]:
-            raise ValueError('The combined length of the forecast and lookback periods must be less than the length of the time series.')
+            raise ValueError('The combined length of the forecast and lookback periods cannot exceed the length of the time series.')
 
         if loss not in ['parametric', 'nonparametric']:
             raise ValueError('Undefined loss function {}.'.format(loss))
