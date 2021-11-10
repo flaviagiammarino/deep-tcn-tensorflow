@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
-from tensorflow.keras.layers import Input, Dense, Lambda, Reshape, concatenate
+from tensorflow.keras.layers import Input, Dense, Lambda, Reshape, ReLU, concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 pd.options.mode.chained_assignment = None
@@ -480,7 +480,8 @@ def build_fn_with_covariates(
                 encoder_input=encoder_input,
                 filters=filters,
                 kernel_size=kernel_size,
-                dilation_rate=dilation_rates[i])
+                dilation_rate=dilation_rates[i]
+            )
 
         else:
 
@@ -488,7 +489,8 @@ def build_fn_with_covariates(
                 encoder_input=encoder_output,
                 filters=filters,
                 kernel_size=kernel_size,
-                dilation_rate=dilation_rates[i])
+                dilation_rate=dilation_rates[i]
+            )
 
     # Slice the second dimension of the encoder output to match the second dimension of the decoder input.
     encoder_output = Lambda(function=lambda x: x[:, - n_forecast:, :])(encoder_output)
@@ -497,7 +499,8 @@ def build_fn_with_covariates(
     decoder_ouput = decoder(
         decoder_input=x_decoder,
         encoder_output=encoder_output,
-        units=units)
+        units=units
+    )
 
     # Forward pass the decoder outputs through the dense layer.
     decoder_ouput = Dense(units=n_targets * n_outputs)(decoder_ouput)
@@ -566,7 +569,8 @@ def build_fn(
                 encoder_input=y_encoder,
                 filters=filters,
                 kernel_size=kernel_size,
-                dilation_rate=dilation_rates[i])
+                dilation_rate=dilation_rates[i]
+            )
 
         else:
 
@@ -574,7 +578,11 @@ def build_fn(
                 encoder_input=encoder_output,
                 filters=filters,
                 kernel_size=kernel_size,
-                dilation_rate=dilation_rates[i])
+                dilation_rate=dilation_rates[i]
+            )
+
+    # Apply the ReLU activation to the final encoder output.
+    encoder_output = ReLU()(encoder_output)
 
     # Slice the second dimension of the encoder output to match the output dimension.
     encoder_output = Lambda(function=lambda x: x[:, - n_forecast:, :])(encoder_output)
