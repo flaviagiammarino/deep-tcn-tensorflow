@@ -204,7 +204,8 @@ class DeepTCN():
             learning_rate=0.001,
             batch_size=32,
             epochs=100,
-            validation_split=0):
+            validation_split=0,
+            verbose=1):
 
         '''
         Train the model.
@@ -222,6 +223,9 @@ class DeepTCN():
 
         validation_split: float.
             Fraction of the training data to be used as validation data, must be between 0 and 1.
+
+        verbose: int.
+            Verbosity mode: 0 = silent, 1 = progress bar, 2 = one line per epoch.
         '''
 
         # Compile the model.
@@ -247,7 +251,8 @@ class DeepTCN():
                 y=self.y_decoder,
                 batch_size=batch_size,
                 epochs=epochs,
-                validation_split=validation_split
+                validation_split=validation_split,
+                verbose=verbose
             )
 
         else:
@@ -257,7 +262,8 @@ class DeepTCN():
                 y=self.y_decoder,
                 batch_size=batch_size,
                 epochs=epochs,
-                validation_split=validation_split
+                validation_split=validation_split,
+                verbose=verbose
             )
 
     def predict(self, index):
