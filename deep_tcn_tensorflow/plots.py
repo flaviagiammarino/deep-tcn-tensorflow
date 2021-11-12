@@ -99,7 +99,7 @@ def plot(df, q, n_targets, n_quantiles):
                     mode='lines',
                     line=dict(
                         color='rgba(5, 80, 174, ' + str(0.1 * (j + 1))  + ')',
-                        width=1
+                        width=0.1
                     )
                 ),
                 row=i + 1,
@@ -110,14 +110,14 @@ def plot(df, q, n_targets, n_quantiles):
                 go.Scatter(
                     x=df['time_idx'],
                     y=df['target_' + str(i + 1) + '_' + str(q[j])],
-                    name='q' + str(q[j]) + '- q' + str(q[- (j + 1)]),
+                    name='q' + str(q[j]) + ' - q' + str(q[- (j + 1)]),
                     showlegend=True if i == 0 else False,
                     mode='lines',
                     fill='tonexty',
                     fillcolor='rgba(5, 80, 174, ' + str(0.1 * (j + 1)) + ')',
                     line=dict(
-                        width=0.25,
                         color='rgba(5, 80, 174, ' + str(0.1 * (j + 1)) + ')',
+                        width=0.1,
                     ),
                 ),
                 row=i + 1,
