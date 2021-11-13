@@ -36,7 +36,8 @@ def encoder(encoder_input, filters, kernel_size, dilation_rate):
     encoder_output = BatchNormalization()(encoder_output)
 
     if encoder_input.shape[-1] != encoder_output.shape[-1]:
-        encoder_input = Conv1D(filters=1, kernel_size=1)(encoder_input)
+        encoder_input = Conv1D(filters=1, kernel_size=kernel_size, dilation_rate=dilation_rate, padding='causal')(encoder_input)
+        encoder_input = ReLU()(encoder_input)
 
     encoder_output = Add()([encoder_input, encoder_output])
     encoder_output = ReLU()(encoder_output)
@@ -79,6 +80,7 @@ def decoder(decoder_input, encoder_output, units):
 
     if encoder_output.shape[-1] != decoder_output.shape[-1]:
         encoder_output = Dense(units=1)(encoder_output)
+        encoder_output = ReLU()(encoder_output)
 
     decoder_output = Add()([decoder_output, encoder_output])
     decoder_output = ReLU()(decoder_output)

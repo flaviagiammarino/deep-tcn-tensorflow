@@ -11,6 +11,7 @@ numpy==1.19.5
 tensorflow==2.6.0
 tensorflow_probability==0.14.1
 plotly==5.3.1
+kaleido==0.2.1
 ```
 ### Usage
 ```python
@@ -43,17 +44,18 @@ model.fit(
     batch_size=64,
     epochs=200,
 )
-
+```
+```python
 # Plot the in-sample predictions
 predictions = model.predict(index=900)
-predictions_ = model.plot_predictions()
-predictions_.write_image('predictions.png', width=750, height=650)
+fig = model.plot_predictions()
+fig.write_image('predictions.png', width=750, height=650)
 ```
 ![predictions](example/predictions.png)
 ```python
 # Plot the out of sample forecasts
 forecasts = model.forecast()
-forecasts_ = model.plot_forecasts()
-forecasts_.write_image('forecasts.png', width=750, height=650)
+fig = model.plot_forecasts()
+fig.write_image('forecasts.png', width=750, height=650)
 ```
 ![forecasts](example/forecasts.png)
