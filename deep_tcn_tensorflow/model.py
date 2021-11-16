@@ -42,10 +42,10 @@ class DeepTCN():
             and n_features is the number of features time series.
 
         forecast_period: int
-            Length of forecast period (or decoder length).
+            Decoder length.
 
         lookback_period: int
-            Length of lookback period (or encoder length).
+            Encoder length.
 
         quantiles: list.
             Quantiles of target time series to be predicted.
@@ -119,8 +119,8 @@ class DeepTCN():
         elif len(quantiles) == 0:
             raise ValueError('No quantiles were provided.')
 
-        # Extract the quantiles
-        q = np.array(quantiles)
+        # Extract the quantiles.
+        q = np.unique(np.array(quantiles))
         if 0.5 not in q:
             q = np.sort(np.append(0.5, q))
 
@@ -330,8 +330,8 @@ class DeepTCN():
         Parameters:
         __________________________________
         x: np.array.
-            Features time series, array with shape (n_forecast, n_features) where n_forecast is the length
-            of the forecast period (decoder length) and n_features is the number of features time series.
+            Features time series, array with shape (n_forecast, n_features) where n_forecast is the decoder length
+            and n_features is the number of features time series.
 
         Returns:
         __________________________________
@@ -448,10 +448,10 @@ def build_fn_with_covariates(
         nonparametric.
 
     n_lookback: int
-        Length of input sequences.
+        Encoder length.
 
     n_forecast: int
-        Length of output sequences.
+        Decoder length.
 
     filters: int.
         Number of filters (or channels) of the convolutional layers in the encoder module.
@@ -545,10 +545,10 @@ def build_fn(
         nonparametric.
 
     n_lookback: int
-        Length of input sequences.
+        Encoder length.
 
     n_forecast: int
-        Length of output sequences.
+        Decoder length.
 
     filters: int.
         Number of filters (or channels) of the convolutional layers in the encoder module.
@@ -614,6 +614,7 @@ def soft_relu(x):
 
     return tf.math.log(1.0 + tf.math.exp(x))
 
+
 def norm_ppf(loc, scale, value):
 
     '''
@@ -621,5 +622,3 @@ def norm_ppf(loc, scale, value):
     '''
 
     return tfp.distributions.Normal(loc, scale).quantile(value).numpy().flatten()
-
-

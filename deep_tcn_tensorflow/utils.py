@@ -26,10 +26,10 @@ def get_training_sequences_with_covariates(y, x, n_samples, n_targets, n_feature
         Number of features time series.
 
     n_lookback: int
-        Length of input sequences.
+        Encoder length.
 
     n_forecast: int
-        Length of output sequences.
+        Decoder length.
 
     Returns:
     __________________________________
@@ -88,10 +88,10 @@ def get_training_sequences(y, n_samples, n_targets, n_lookback, n_forecast):
         Number of target time series.
 
     n_lookback: int
-        Length of input sequences.
+        Encoder length.
 
     n_forecast: int
-        Length of output sequences.
+        Decoder length.
 
     Returns:
     __________________________________
@@ -114,5 +114,3 @@ def get_training_sequences(y, n_samples, n_targets, n_lookback, n_forecast):
     y_decoder = y_decoder[n_lookback: n_samples - n_forecast + 1, :, :]
 
     return y_encoder, y_decoder
-
-

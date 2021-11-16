@@ -10,20 +10,20 @@ def nonparametric_loss(y_true, y_pred, q):
     __________________________________
     y_true: tf.Tensor.
         Actual values of target time series, a tensor with shape (n_samples, n_forecast, n_targets) where n_samples is
-        the batch size, n_forecast is the length of the output sequences and n_targets is the number of target time series.
+        the batch size, n_forecast is the decoder length and n_targets is the number of target time series.
 
     y_pred: tf.Tensor.
         Predicted quantiles of target time series, a tensor with shape (n_samples, n_forecast, n_targets, n_quantiles)
-        where n_samples is the batch size, n_forecast is the length of the output sequences, n_targets is the number of
-        target time series and n_quantiles is the number of quantiles.
+        where n_samples is the batch size, n_forecast is the decoder length, n_targets is the number of target time
+        series and n_quantiles is the number of quantiles.
 
     q: tf.Tensor.
-        Quantiles, a tensor with shape equal to the number of quantiles.
+        Quantiles, a 1-dimensional tensor with length equal to the number of quantiles.
 
     Returns:
     __________________________________
     tf.Tensor.
-        Loss value, a tensor with shape 1.
+        Loss value, a 1-dimensional tensor with length equal to 1.
     '''
 
     y_true = tf.cast(tf.expand_dims(y_true, axis=3), dtype=tf.float32)
@@ -46,17 +46,17 @@ def parametric_loss(y_true, params):
     __________________________________
     y_true: tf.Tensor.
         Actual values of target time series, a tensor with shape (n_samples, n_forecast, n_targets) where n_samples is
-        the batch size, n_forecast is the length of the output sequences and n_targets is the number of target time series.
+        the batch size, n_forecast is the decoder length and n_targets is the number of target time series.
 
     params: tf.Tensor.
         Predicted means and standard deviations of target time series, a tensor with shape (n_samples, n_forecast,
-        n_targets, 2) where n_samples is the batch size, n_forecast is the length of the output sequences and n_targets
-        is the number of target time series.
+        n_targets, 2) where n_samples is the batch size, n_forecast is the decoder length and n_targets is the
+        number of target time series.
 
     Returns:
     __________________________________
     tf.Tensor.
-        Loss value, a tensor with shape 1.
+        Loss value, a 1-dimensional tensor with length equal to 1.
     '''
 
     y_true = tf.cast(y_true, dtype=tf.float32)

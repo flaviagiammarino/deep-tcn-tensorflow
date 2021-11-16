@@ -26,6 +26,7 @@ model.fit(
     learning_rate=0.01,
     batch_size=64,
     epochs=200,
+    verbose=1
 )
 
 # Plot the in-sample predictions
