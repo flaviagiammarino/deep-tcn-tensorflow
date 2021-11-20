@@ -59,6 +59,3 @@ fig = model.plot_forecasts()
 fig.write_image('forecasts.png', width=750, height=650)
 ```
 ![forecasts](example/forecasts.png)
-
-### Resources
-A tutorial notebook is available [on Kaggle](https://www.kaggle.com/flaviagiammarino/deeptcn-tensorflow-tutorial).
