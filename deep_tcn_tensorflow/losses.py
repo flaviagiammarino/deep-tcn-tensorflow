@@ -23,7 +23,7 @@ def nonparametric_loss(y_true, y_pred, q):
     Returns:
     __________________________________
     tf.Tensor.
-        Loss value, a 1-dimensional tensor with length equal to 1.
+        Loss value, a scalar tensor.
     '''
 
     y_true = tf.cast(tf.expand_dims(y_true, axis=3), dtype=tf.float32)
@@ -56,7 +56,7 @@ def parametric_loss(y_true, params):
     Returns:
     __________________________________
     tf.Tensor.
-        Loss value, a 1-dimensional tensor with length equal to 1.
+        Loss value, a scalar tensor.
     '''
 
     y_true = tf.cast(y_true, dtype=tf.float32)
