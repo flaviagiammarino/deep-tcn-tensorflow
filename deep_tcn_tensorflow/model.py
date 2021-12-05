@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
-from tensorflow.keras.layers import Input, Dense, Lambda, Reshape, ReLU, concatenate
+from tensorflow.keras.layers import Input, Dense, Lambda, Reshape, ReLU, Concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 pd.options.mode.chained_assignment = None
@@ -475,7 +475,7 @@ def build_fn_with_covariates(
     y_encoder = Input(shape=(n_lookback, n_targets))
 
     # Concatenate the encoder inputs.
-    encoder_input = concatenate([x_encoder, y_encoder], axis=2)
+    encoder_input = Concatenate()([x_encoder, y_encoder])
 
     # Forward pass the encoder inputs through the encoder module.
     for i in range(len(dilation_rates)):
