@@ -62,6 +62,7 @@ def plot(df, q, n_targets, n_quantiles):
                 x=df['time_idx'],
                 y=df['target_' + str(i + 1)],
                 name='Actual',
+                legendgroup='Actual',
                 showlegend=True if i == 0 else False,
                 mode='lines',
                 line=dict(
@@ -78,6 +79,7 @@ def plot(df, q, n_targets, n_quantiles):
                 x=df['time_idx'],
                 y=df['target_' + str(i + 1) + '_0.5'],
                 name='Median',
+                legendgroup='Median',
                 showlegend=True if i == 0 else False,
                 mode='lines',
                 line=dict(
@@ -95,6 +97,8 @@ def plot(df, q, n_targets, n_quantiles):
                 go.Scatter(
                     x=df['time_idx'],
                     y=df['target_' + str(i + 1) + '_' + str(q[- (j + 1)])],
+                    name='q' + str(q[j]) + ' - q' + str(q[- (j + 1)]),
+                    legendgroup='q' + str(q[j]) + ' - q' + str(q[- (j + 1)]),
                     showlegend=False,
                     mode='lines',
                     line=dict(
@@ -111,6 +115,7 @@ def plot(df, q, n_targets, n_quantiles):
                     x=df['time_idx'],
                     y=df['target_' + str(i + 1) + '_' + str(q[j])],
                     name='q' + str(q[j]) + ' - q' + str(q[- (j + 1)]),
+                    legendgroup='q' + str(q[j]) + ' - q' + str(q[- (j + 1)]),
                     showlegend=True if i == 0 else False,
                     mode='lines',
                     fill='tonexty',
