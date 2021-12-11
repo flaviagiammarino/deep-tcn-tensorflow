@@ -34,16 +34,16 @@ def get_training_sequences_with_covariates(y, x, n_samples, n_targets, n_feature
     Returns:
     __________________________________
     x_encoder: np.array.
-        Encoder features, array of with shape (n_samples - n_lookback - n_forecast + 1, n_lookback, n_features).
+        Encoder features, array with shape (n_samples - n_lookback - n_forecast + 1, n_lookback, n_features).
 
     x_decoder: np.array.
-        Decoder features, array of with shape (n_samples - n_lookback - n_forecast + 1, n_forecast, n_features).
+        Decoder features, array with shape (n_samples - n_lookback - n_forecast + 1, n_forecast, n_features).
 
     y_encoder: np.array.
-        Encoder targets, array of with shape (n_samples - n_lookback - n_forecast + 1, n_lookback, n_targets).
+        Encoder targets, array with shape (n_samples - n_lookback - n_forecast + 1, n_lookback, n_targets).
 
     y_decoder: np.array.
-        Decoder targets, array of with shape (n_samples - n_lookback - n_forecast + 1, n_forecast, n_targets).
+        Decoder targets, array with shape (n_samples - n_lookback - n_forecast + 1, n_forecast, n_targets).
     '''
 
     x_encoder = np.zeros((n_samples, n_lookback, n_features))
@@ -96,10 +96,10 @@ def get_training_sequences(y, n_samples, n_targets, n_lookback, n_forecast):
     Returns:
     __________________________________
     y_encoder: np.array.
-        Encoder targets, array of with shape (n_samples - n_lookback - n_forecast + 1, n_lookback, n_targets).
+        Encoder targets, array with shape (n_samples - n_lookback - n_forecast + 1, n_lookback, n_targets).
 
     y_decoder: np.array.
-        Decoder targets, array of with shape (n_samples - n_lookback - n_forecast + 1, n_forecast, n_targets).
+        Decoder targets, array with shape (n_samples - n_lookback - n_forecast + 1, n_forecast, n_targets).
     '''
 
     y_encoder = np.zeros((n_samples, n_lookback, n_targets))
