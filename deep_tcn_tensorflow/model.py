@@ -33,18 +33,18 @@ class DeepTCN():
 
         Parameters:
         __________________________________
-        y: np.array
+        y: np.array.
             Target time series, array with shape (n_samples, n_targets) where n_samples is the length of the time series
             and n_targets is the number of target time series.
 
-        x: np.array
+        x: np.array.
             Features time series, array with shape (n_samples, n_features) where n_samples is the length of the time series
             and n_features is the number of features time series.
 
-        forecast_period: int
+        forecast_period: int.
             Decoder length.
 
-        lookback_period: int
+        lookback_period: int.
             Encoder length.
 
         quantiles: list.
@@ -163,7 +163,7 @@ class DeepTCN():
                 n_forecast=self.n_forecast
             )
 
-            # Build the model graph.
+            # Build the model.
             self.model = build_fn_with_covariates(
                 n_targets=self.n_targets,
                 n_features=self.n_features,
@@ -188,7 +188,7 @@ class DeepTCN():
                 n_forecast=self.n_forecast
             )
 
-            # Build the model graph.
+            # Build the model.
             self.model = build_fn(
                 n_targets=self.n_targets,
                 n_outputs=self.n_outputs,
@@ -278,7 +278,7 @@ class DeepTCN():
 
         Returns:
         __________________________________
-        predictions: pd.DataFrame
+        predictions: pd.DataFrame.
             Data frame including the actual values of the time series and the predicted quantiles.
         '''
 
@@ -306,10 +306,12 @@ class DeepTCN():
 
         for i in range(self.n_targets):
             predictions['target_' + str(i + 1)] = self.y_min[i] + (self.y_max[i] - self.y_min[i]) * self.y[:, i]
+
             for j in range(self.n_quantiles):
                 if self.loss == 'parametric':
                     predictions['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[index: index + self.n_forecast] = \
                     self.y_min[i] + (self.y_max[i] - self.y_min[i]) * norm_ppf(y_pred[:, :, i, 0], y_pred[:, :, i, 1], self.q[j])
+
                 else:
                     predictions['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[index: index + self.n_forecast] = \
                     self.y_min[i] + (self.y_max[i] - self.y_min[i]) * y_pred[:, :, i, j].flatten()
@@ -335,7 +337,7 @@ class DeepTCN():
 
         Returns:
         __________________________________
-        forecasts: pd.DataFrame
+        forecasts: pd.DataFrame.
             Data frame including the actual values of the time series and the predicted quantiles.
         '''
 
@@ -376,12 +378,13 @@ class DeepTCN():
         forecasts['time_idx'] = np.arange(self.n_samples + self.n_forecast)
 
         for i in range(self.n_targets):
-            forecasts['target_' + str(i + 1)].iloc[: - self.n_forecast] = \
-                self.y_min[i] + (self.y_max[i] - self.y_min[i]) * self.y[:, i]
+            forecasts['target_' + str(i + 1)].iloc[: - self.n_forecast] = self.y_min[i] + (self.y_max[i] - self.y_min[i]) * self.y[:, i]
+
             for j in range(self.n_quantiles):
                 if self.loss == 'parametric':
                     forecasts['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[- self.n_forecast:] = \
                     self.y_min[i] + (self.y_max[i] - self.y_min[i]) * norm_ppf(y_pred[:, :, i, 0], y_pred[:, :, i, 1], self.q[j])
+
                 else:
                     forecasts['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[- self.n_forecast:] = \
                     self.y_min[i] + (self.y_max[i] - self.y_min[i]) * y_pred[:, :, i, j].flatten()
@@ -401,7 +404,7 @@ class DeepTCN():
 
         Returns:
         __________________________________
-        go.Figure
+        go.Figure.
         '''
 
         return plot(self.predictions, self.q, self.n_targets, self.n_quantiles)
@@ -413,7 +416,7 @@ class DeepTCN():
 
         Returns:
         __________________________________
-        go.Figure
+        go.Figure.
         '''
 
         return plot(self.forecasts, self.q, self.n_targets, self.n_quantiles)
@@ -432,11 +435,11 @@ def build_fn_with_covariates(
         loss):
 
     '''
-    Build the model graph with covariates.
+    Build the model with covariates.
 
     Parameters:
     __________________________________
-    n_targets: int
+    n_targets: int.
         Number of target time series.
 
     n_features: int.
@@ -447,10 +450,10 @@ def build_fn_with_covariates(
         and standard deviation of the Normal distribution), equal to the number of quantiles when the loss is
         nonparametric.
 
-    n_lookback: int
+    n_lookback: int.
         Encoder length.
 
-    n_forecast: int
+    n_forecast: int.
         Decoder length.
 
     filters: int.
@@ -532,11 +535,11 @@ def build_fn(
         loss):
 
     '''
-    Build the model graph without covariates.
+    Build the model without covariates.
 
     Parameters:
     __________________________________
-    n_targets: int
+    n_targets: int.
         Number of target time series.
 
     n_outputs: int.
@@ -544,10 +547,10 @@ def build_fn(
         and standard deviation of the Normal distribution), equal to the number of quantiles when the loss is
         nonparametric.
 
-    n_lookback: int
+    n_lookback: int.
         Encoder length.
 
-    n_forecast: int
+    n_forecast: int.
         Decoder length.
 
     filters: int.
@@ -607,6 +610,7 @@ def build_fn(
 
 
 def soft_relu(x):
+
     '''
     Soft ReLU activation function, used for ensuring the positivity of the standard deviation of the Normal distribution
     when using the parameteric loss function. See Section 3.2.2 in the DeepTCN paper.

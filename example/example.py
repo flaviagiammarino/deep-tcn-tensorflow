@@ -34,7 +34,7 @@ predictions = model.predict(index=900)
 fig = model.plot_predictions()
 fig.write_image('predictions.png', width=750, height=650)
 
-# Plot the out of sample forecasts
+# Plot the out-of-sample forecasts
 forecasts = model.forecast()
 fig = model.plot_forecasts()
 fig.write_image('forecasts.png', width=750, height=650)

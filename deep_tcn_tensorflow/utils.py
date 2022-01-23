@@ -8,27 +8,27 @@ def get_training_sequences_with_covariates(y, x, n_samples, n_targets, n_feature
 
     Parameters:
     __________________________________
-    y: np.array
+    y: np.array.
         Target time series, array with shape (n_samples, n_targets) where n_samples is the length of the time series
         and n_targets is the number of target time series.
 
-    x: np.array
+    x: np.array.
         Features time series, array with shape (n_samples, n_features) where n_samples is the length of the time series
         and n_features is the number of features time series.
 
-    n_samples: int
+    n_samples: int.
         Length of the time series.
 
-    n_targets: int
+    n_targets: int.
         Number of target time series.
 
     n_features: int.
         Number of features time series.
 
-    n_lookback: int
+    n_lookback: int.
         Encoder length.
 
-    n_forecast: int
+    n_forecast: int.
         Decoder length.
 
     Returns:
@@ -77,20 +77,20 @@ def get_training_sequences(y, n_samples, n_targets, n_lookback, n_forecast):
 
     Parameters:
     __________________________________
-    y: np.array
+    y: np.array.
         Target time series, array with shape (n_samples, n_targets) where n_samples is the length of the time series
         and n_targets is the number of target time series.
 
-    n_samples: int
+    n_samples: int.
         Length of the time series.
 
-    n_targets: int
+    n_targets: int.
         Number of target time series.
 
-    n_lookback: int
+    n_lookback: int.
         Encoder length.
 
-    n_forecast: int
+    n_forecast: int.
         Decoder length.
 
     Returns:

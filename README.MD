@@ -53,7 +53,7 @@ fig.write_image('predictions.png', width=750, height=650)
 ```
 ![predictions](example/predictions.png)
 ```python
-# Plot the out of sample forecasts
+# Plot the out-of-sample forecasts
 forecasts = model.forecast()
 fig = model.plot_forecasts()
 fig.write_image('forecasts.png', width=750, height=650)
