@@ -4,7 +4,7 @@
 ![languages](https://img.shields.io/github/languages/top/flaviagiammarino/deep-tcn-tensorflow)
 
 TensorFlow implementation of multivariate time series forecasting model introduced in Chen, Y., Kang, Y., Chen, Y., 
-& Wang, Z. (2020). Probabilistic forecasting with temporal convolutional neural network. *Neurocomputing*, 399, 491-501.
+and Wang, Z. (2020). Probabilistic forecasting with temporal convolutional neural network. *Neurocomputing*, 399, 491-501.
 [https://doi.org/10.1016/j.neucom.2020.03.011](https://doi.org/10.1016/j.neucom.2020.03.011).
 
 ## Dependencies
