@@ -1,9 +1,13 @@
-## DeepTCN TensorFlow
+# DeepTCN TensorFlow
+
+![license](https://img.shields.io/github/license/flaviagiammarino/deep-tcn-tensorflow)
+![languages](https://img.shields.io/github/languages/top/flaviagiammarino/deep-tcn-tensorflow)
+
 TensorFlow implementation of multivariate time series forecasting model introduced in Chen, Y., Kang, Y., Chen, Y., 
-& Wang, Z. (2020). Probabilistic forecasting with temporal convolutional neural network. Neurocomputing, 399, 491-501.
+& Wang, Z. (2020). Probabilistic forecasting with temporal convolutional neural network. *Neurocomputing*, 399, 491-501.
 [https://doi.org/10.1016/j.neucom.2020.03.011](https://doi.org/10.1016/j.neucom.2020.03.011).
 
-### Dependencies
+## Dependencies
 ```bash
 pandas==1.3.4
 numpy==1.19.5
@@ -12,7 +16,7 @@ tensorflow_probability==0.14.1
 plotly==5.3.1
 kaleido==0.2.1
 ```
-### Usage
+## Usage
 ```python
 import numpy as np
 from deep_tcn_tensorflow.model import DeepTCN
