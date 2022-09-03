@@ -97,8 +97,8 @@ def plot(df, q, n_targets, n_quantiles):
                 go.Scatter(
                     x=df['time_idx'],
                     y=df['target_' + str(i + 1) + '_' + str(q[- (j + 1)])],
-                    name='q' + str(q[j]) + ' - q' + str(q[- (j + 1)]),
-                    legendgroup='q' + str(q[j]) + ' - q' + str(q[- (j + 1)]),
+                    name='q' + format(q[j], '.0%') + ' - q' + format(q[- (j + 1)], '.0%'),
+                    legendgroup='q' + format(q[j], '.0%') + ' - q' + format(q[- (j + 1)], '.0%'),
                     showlegend=False,
                     mode='lines',
                     line=dict(
@@ -114,8 +114,8 @@ def plot(df, q, n_targets, n_quantiles):
                 go.Scatter(
                     x=df['time_idx'],
                     y=df['target_' + str(i + 1) + '_' + str(q[j])],
-                    name='q' + str(q[j]) + ' - q' + str(q[- (j + 1)]),
-                    legendgroup='q' + str(q[j]) + ' - q' + str(q[- (j + 1)]),
+                    name='q' + format(q[j], '.0%') + ' - q' + format(q[- (j + 1)], '.0%'),
+                    legendgroup='q' + format(q[j], '.0%') + ' - q' + format(q[- (j + 1)], '.0%'),
                     showlegend=True if i == 0 else False,
                     mode='lines',
                     fill='tonexty',
