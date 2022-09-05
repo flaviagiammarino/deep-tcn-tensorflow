@@ -20,7 +20,7 @@ def encoder(encoder_input, filters, kernel_size, dilation_rate):
         Kernel size of the convolutional layers.
 
     dilation_rate: int.
-        Dilation rates of the convolutional layers.
+        Dilation rate of the convolutional layers.
 
     Returns:
     __________________________________
