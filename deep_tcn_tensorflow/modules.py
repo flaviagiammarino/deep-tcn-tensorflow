@@ -78,7 +78,7 @@ def decoder(decoder_input, encoder_output, units):
     decoder_output = BatchNormalization()(decoder_output)
 
     if encoder_output.shape[-1] != decoder_output.shape[-1]:
-        encoder_output = Dense(units=1)(encoder_output)
+        encoder_output = Dense(units=units)(encoder_output)
 
     decoder_output = Add()([decoder_output, encoder_output])
     decoder_output = ReLU()(decoder_output)
