@@ -2,7 +2,7 @@
 
 ![license](https://img.shields.io/github/license/flaviagiammarino/deep-tcn-tensorflow?color=green)
 ![languages](https://img.shields.io/github/languages/top/flaviagiammarino/deep-tcn-tensorflow?color=blue)
-![stars](https://img.shields.io/github/stars/flaviagiammarino/deep-tcn-tensorflow?color=f1367a)
+![stars](https://img.shields.io/github/stars/flaviagiammarino/deep-tcn-tensorflow?color=ff69b4)
 ![forks](https://img.shields.io/github/forks/flaviagiammarino/deep-tcn-tensorflow?color=orange)
 
 TensorFlow implementation of multivariate time series forecasting model introduced in Chen, Y., Kang, Y., Chen, Y., 
