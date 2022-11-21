@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
-from tensorflow.keras.layers import Input, Dense, Lambda, Reshape, ReLU, Concatenate
+from tensorflow.keras.layers import Input, Dense, Reshape, ReLU, Concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 pd.options.mode.chained_assignment = None
@@ -65,59 +65,6 @@ class DeepTCN():
         loss: str.
             The loss function, either 'nonparametric' or 'parametric'.
         '''
-
-        if type(y) != np.ndarray:
-            raise ValueError('The target time series must be provided as a numpy array.')
-
-        elif np.isnan(y).sum() != 0:
-            raise ValueError('The target time series cannot contain missing values.')
-
-        if len(y.shape) > 2:
-            raise ValueError('The targets array cannot have more than 2 dimensions. Found {} dimensions.'.format(len(y.shape)))
-
-        elif len(y.shape) == 1:
-            y = np.expand_dims(y, axis=1)
-
-        if x is not None:
-
-            if type(x) != np.ndarray:
-                raise ValueError('The features time series must be provided as a numpy array.')
-
-            elif np.isnan(x).sum() != 0:
-                raise ValueError('The features time series cannot contain missing values.')
-
-            if len(x.shape) > 2:
-                raise ValueError('The features array cannot have more than 2 dimensions. Found {} dimensions.'.format(len(x.shape)))
-
-            elif len(x.shape) == 1:
-                x = np.expand_dims(x, axis=1)
-
-            if y.shape[0] != x.shape[0]:
-                raise ValueError('The targets and features time series must have the same length.')
-
-        if forecast_period < 1:
-            raise ValueError('The length of the forecast period should be greater than one.')
-
-        if lookback_period < forecast_period:
-            raise ValueError('The lookback period cannot be shorter than the forecast period.')
-
-        if forecast_period + lookback_period >= y.shape[0]:
-            raise ValueError('The combined length of the forecast and lookback periods cannot exceed the length of the time series.')
-
-        if loss not in ['parametric', 'nonparametric']:
-            raise ValueError('Undefined loss function {}.'.format(loss))
-
-        if type(dilation_rates) != list:
-            raise ValueError('The dilation rates must be provided as a list.')
-
-        elif len(dilation_rates) == 0:
-            raise ValueError('No dilation rates were provided.')
-
-        if type(quantiles) != list:
-            raise ValueError('The quantiles must be provided as a list.')
-
-        elif len(quantiles) == 0:
-            raise ValueError('No quantiles were provided.')
 
         # Extract the quantiles.
         q = np.unique(np.array(quantiles))
@@ -282,12 +229,6 @@ class DeepTCN():
             Data frame including the actual values of the time series and the predicted quantiles.
         '''
 
-        if index < self.n_lookback:
-            raise ValueError('The index must be greater than {}.'.format(self.n_lookback))
-
-        elif index > len(self.y) - self.n_forecast:
-            raise ValueError('The index must be less than {}.'.format(self.n_samples - self.n_forecast))
-
         # Extract the predictions for the selected sequence.
         if self.x is not None:
             y_pred = self.model.predict([self.x_encoder, self.x_decoder, self.y_encoder])
@@ -340,23 +281,6 @@ class DeepTCN():
         forecasts: pd.DataFrame.
             Data frame including the actual values of the time series and the predicted quantiles.
         '''
-
-        if x is not None:
-
-            if type(x) != np.ndarray:
-                raise ValueError('The features time series must be provided as a numpy array.')
-
-            elif np.isnan(x).sum() != 0:
-                raise ValueError('The features time series cannot contain missing values.')
-
-            if len(x.shape) == 1:
-                x = np.expand_dims(x, axis=1)
-
-            elif len(x.shape) > 2:
-                raise ValueError('The features array cannot have more than 2 dimensions. Found {} dimensions.'.format(len(x.shape)))
-
-            if x.shape[0] != self.n_forecast:
-                raise ValueError('The length of the features time series must be equal to the length of the forecast period.')
 
         # Generate the forecasts.
         y_encoder = self.y[- self.n_lookback:, :].reshape(1, self.n_lookback, self.n_targets)
@@ -502,7 +426,7 @@ def build_fn_with_covariates(
             )
 
     # Slice the second dimension of the encoder output to match the second dimension of the decoder input.
-    encoder_output = Lambda(function=lambda x: x[:, - n_forecast:, :])(encoder_output)
+    encoder_output = encoder_output[:, - n_forecast:, :]
 
     # Forward pass the decoder inputs and the sliced encoder output through the decoder module.
     decoder_ouput = decoder(
@@ -519,7 +443,7 @@ def build_fn_with_covariates(
 
     # If using the parametric loss, apply the soft ReLU activation to ensure a positive standard deviation.
     if loss == 'parametric':
-        y_decoder = Lambda(function=lambda x: tf.stack([x[:, :, :, 0], soft_relu(x[:, :, :, 1])], axis=-1))(y_decoder)
+        y_decoder = tf.stack([y_decoder[:, :, :, 0], soft_relu(y_decoder[:, :, :, 1])], axis=-1)
 
     return Model([x_encoder, x_decoder, y_encoder], y_decoder)
 
@@ -594,7 +518,7 @@ def build_fn(
     encoder_output = ReLU()(encoder_output)
 
     # Slice the second dimension of the encoder output to match the output dimension.
-    encoder_output = Lambda(function=lambda x: x[:, - n_forecast:, :])(encoder_output)
+    encoder_output = encoder_output[:, - n_forecast:, :]
 
     # Forward pass the encoder outputs through the dense layer.
     encoder_output = Dense(units=n_targets * n_outputs)(encoder_output)
@@ -604,7 +528,7 @@ def build_fn(
 
     # If using the parametric loss, apply the soft ReLU activation to ensure a positive standard deviation.
     if loss == 'parametric':
-        y_decoder = Lambda(function=lambda x: tf.stack([x[:, :, :, 0], soft_relu(x[:, :, :, 1])], axis=-1))(y_decoder)
+        y_decoder = tf.stack([y_decoder[:, :, :, 0], soft_relu(y_decoder[:, :, :, 1])], axis=-1)
 
     return Model(y_encoder, y_decoder)
 

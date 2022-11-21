@@ -34,7 +34,7 @@ def nonparametric_loss(y_true, y_pred, q):
 
     L = tf.multiply(q, tf.maximum(0.0, e)) + tf.multiply(1.0 - q, tf.maximum(0.0, - e))
 
-    return tf.reduce_mean(tf.reduce_mean(tf.reduce_sum(L, axis=-1), axis=-1))
+    return tf.reduce_mean(tf.reduce_sum(L, axis=-1))
 
 
 def parametric_loss(y_true, params):
@@ -67,4 +67,4 @@ def parametric_loss(y_true, params):
 
     L = 0.5 * tf.math.log(2 * np.pi) + tf.math.log(sigma) + tf.math.divide(tf.math.pow(y_true - mu, 2), 2 * tf.math.pow(sigma, 2))
 
-    return tf.experimental.numpy.nanmean(tf.experimental.numpy.nanmean(tf.experimental.numpy.nansum(L, axis=-1), axis=-1))
+    return tf.experimental.numpy.nanmean(tf.experimental.numpy.nansum(L, axis=-1))
