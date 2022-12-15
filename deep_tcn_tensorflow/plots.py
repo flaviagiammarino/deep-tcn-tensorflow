@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-def plot(df, q, n_targets, n_quantiles):
+def plot(df, quantiles):
 
     '''
     Plot the target time series and the predicted quantiles.
@@ -11,21 +11,22 @@ def plot(df, q, n_targets, n_quantiles):
     df: pd.DataFrame.
         Data frame with target time series and predicted quantiles.
 
-    q: np.array.
-        Quantiles.
-
-    n_targets: int.
-        Number of target time series.
-
-    n_quantiles: int.
-        Number of quantiles.
+    quantiles: list.
+        Quantiles of target time series which have been predicted.
 
     Returns:
     __________________________________
     fig: go.Figure.
         Line chart of target time series and predicted quantiles, one subplot for each target.
     '''
+    
+    # get the number of predicted quantiles
+    n_quantiles = len(quantiles)
 
+    # get the number of targets
+    n_targets = int((df.shape[1] - 1) / (n_quantiles + 1))
+ 
+    # plot the predicted quantiles for each target
     fig = make_subplots(
         subplot_titles=['Target ' + str(i + 1) for i in range(n_targets)],
         vertical_spacing=0.15,
@@ -36,22 +37,27 @@ def plot(df, q, n_targets, n_quantiles):
     fig.update_layout(
         plot_bgcolor='white',
         paper_bgcolor='white',
-        margin=dict(t=40, b=10, l=10, r=10),
+        margin=dict(t=60, b=60, l=30, r=30),
         font=dict(
-            color='#000000',
-            size=10,
+            color='#1b1f24',
+            size=8,
         ),
         legend=dict(
             traceorder='normal',
             font=dict(
-                color='#000000',
+                color='#1b1f24',
+                size=10,
             ),
+            x=0,
+            y=-0.1,
+            orientation='h'
         ),
     )
 
     fig.update_annotations(
         font=dict(
-            size=13
+            color='#1b1f24',
+            size=12,
         )
     )
 
@@ -66,7 +72,7 @@ def plot(df, q, n_targets, n_quantiles):
                 showlegend=True if i == 0 else False,
                 mode='lines',
                 line=dict(
-                    color='#b3b3b3',
+                    color='#afb8c1',
                     width=1
                 )
             ),
@@ -84,7 +90,7 @@ def plot(df, q, n_targets, n_quantiles):
                 mode='lines',
                 line=dict(
                     width=1,
-                    color='rgba(5, 80, 174, 0.5)',
+                    color='rgba(9, 105, 218, 0.5)',
                 ),
             ),
             row=i + 1,
@@ -96,13 +102,13 @@ def plot(df, q, n_targets, n_quantiles):
             fig.add_trace(
                 go.Scatter(
                     x=df['time_idx'],
-                    y=df['target_' + str(i + 1) + '_' + str(q[- (j + 1)])],
-                    name='q' + format(q[j], '.0%') + ' - q' + format(q[- (j + 1)], '.0%'),
-                    legendgroup='q' + format(q[j], '.0%') + ' - q' + format(q[- (j + 1)], '.0%'),
+                    y=df['target_' + str(i + 1) + '_' + str(quantiles[- (j + 1)])],
+                    name='q' + format(quantiles[j], '.1%') + ' - ' + 'q' + format(quantiles[- (j + 1)], '.1%'),
+                    legendgroup='q' + format(quantiles[j], '.1%') + ' - ' + 'q' + format(quantiles[- (j + 1)], '.1%'),
                     showlegend=False,
                     mode='lines',
                     line=dict(
-                        color='rgba(5, 80, 174, ' + str(0.1 * (j + 1))  + ')',
+                        color='rgba(9, 105, 218, ' + str(0.1 * (j + 1))  + ')',
                         width=0.1
                     )
                 ),
@@ -113,15 +119,15 @@ def plot(df, q, n_targets, n_quantiles):
             fig.add_trace(
                 go.Scatter(
                     x=df['time_idx'],
-                    y=df['target_' + str(i + 1) + '_' + str(q[j])],
-                    name='q' + format(q[j], '.0%') + ' - q' + format(q[- (j + 1)], '.0%'),
-                    legendgroup='q' + format(q[j], '.0%') + ' - q' + format(q[- (j + 1)], '.0%'),
+                    y=df['target_' + str(i + 1) + '_' + str(quantiles[j])],
+                    name='q' + format(quantiles[j], '.1%') + ' - ' + 'q' + format(quantiles[- (j + 1)], '.1%'),
+                    legendgroup='q' + format(quantiles[j], '.1%') + ' - ' + 'q' + format(quantiles[- (j + 1)], '.1%'),
                     showlegend=True if i == 0 else False,
                     mode='lines',
                     fill='tonexty',
-                    fillcolor='rgba(5, 80, 174, ' + str(0.1 * (j + 1)) + ')',
+                    fillcolor='rgba(9, 105, 218, ' + str(0.1 * (j + 1)) + ')',
                     line=dict(
-                        color='rgba(5, 80, 174, ' + str(0.1 * (j + 1)) + ')',
+                        color='rgba(9, 105, 218, ' + str(0.1 * (j + 1)) + ')',
                         width=0.1,
                     ),
                 ),
@@ -131,11 +137,12 @@ def plot(df, q, n_targets, n_quantiles):
 
         fig.update_xaxes(
             title='Time',
-            color='#000000',
+            color='#424a53',
             tickfont=dict(
-                color='#3a3a3a',
+                color='#6e7781',
+                size=6,
             ),
-            linecolor='#d9d9d9',
+            linecolor='#eaeef2',
             mirror=True,
             showgrid=False,
             row=i + 1,
@@ -144,11 +151,12 @@ def plot(df, q, n_targets, n_quantiles):
 
         fig.update_yaxes(
             title='Value',
-            color='#000000',
+            color='#424a53',
             tickfont=dict(
-                color='#3a3a3a',
+                color='#6e7781',
+                size=6,
             ),
-            linecolor='#d9d9d9',
+            linecolor='#eaeef2',
             mirror=True,
             showgrid=False,
             zeroline=False,

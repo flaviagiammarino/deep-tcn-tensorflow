@@ -2,15 +2,11 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
-from tensorflow.keras.layers import Input, Dense, Reshape, ReLU, Concatenate
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
 pd.options.mode.chained_assignment = None
 
 from deep_tcn_tensorflow.modules import encoder, decoder
 from deep_tcn_tensorflow.utils import get_training_sequences_with_covariates, get_training_sequences
 from deep_tcn_tensorflow.losses import parametric_loss, nonparametric_loss
-from deep_tcn_tensorflow.plots import plot
 
 class DeepTCN():
 
@@ -29,7 +25,7 @@ class DeepTCN():
         '''
         Implementation of multivariate time series forecasting model introduced in Chen, Y., Kang, Y., Chen, Y., &
         Wang, Z. (2020). Probabilistic forecasting with temporal convolutional neural network. Neurocomputing, 399,
-        491-501. https://doi.org/10.1016/j.neucom.2020.03.011.
+        491-501.
 
         Parameters:
         __________________________________
@@ -179,14 +175,14 @@ class DeepTCN():
         if self.loss == 'parametric':
 
             self.model.compile(
-                optimizer=Adam(learning_rate=learning_rate),
+                optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
                 loss=parametric_loss,
             )
 
         else:
 
             self.model.compile(
-                optimizer=Adam(learning_rate=learning_rate),
+                optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
                 loss=lambda y_true, y_pred: nonparametric_loss(y_true, y_pred, self.q)
             )
 
@@ -213,137 +209,68 @@ class DeepTCN():
                 verbose=verbose
             )
 
-    def predict(self, index):
+    def forecast(self, y, x=None):
 
         '''
-        Extract the in-sample predictions.
+        Generate the forecasts.
 
         Parameters:
         __________________________________
-        index: int.
-            The start index of the sequence to predict.
-
-        Returns:
-        __________________________________
-        predictions: pd.DataFrame.
-            Data frame including the actual values of the time series and the predicted quantiles.
-        '''
-
-        # Extract the predictions for the selected sequence.
-        if self.x is not None:
-            y_pred = self.model.predict([self.x_encoder, self.x_decoder, self.y_encoder])
-        else:
-            y_pred = self.model.predict(self.y_encoder)
-
-        y_pred = y_pred[index - self.n_lookback: index - self.n_lookback + 1, :, :, :]
-
-        # Organize the predictions in a data frame.
-        columns = ['time_idx']
-        columns.extend(['target_' + str(i + 1) for i in range(self.n_targets)])
-        columns.extend(['target_' + str(i + 1) + '_' + str(self.q[j]) for i in range(self.n_targets) for j in range(self.n_quantiles)])
-
-        predictions = pd.DataFrame(columns=columns)
-        predictions['time_idx'] = np.arange(self.n_samples)
-
-        for i in range(self.n_targets):
-            predictions['target_' + str(i + 1)] = self.y_min[i] + (self.y_max[i] - self.y_min[i]) * self.y[:, i]
-
-            for j in range(self.n_quantiles):
-                if self.loss == 'parametric':
-                    predictions['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[index: index + self.n_forecast] = \
-                    self.y_min[i] + (self.y_max[i] - self.y_min[i]) * norm_ppf(y_pred[:, :, i, 0], y_pred[:, :, i, 1], self.q[j])
-
-                else:
-                    predictions['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[index: index + self.n_forecast] = \
-                    self.y_min[i] + (self.y_max[i] - self.y_min[i]) * y_pred[:, :, i, j].flatten()
-
-        predictions = predictions.astype(float)
-
-        # Save the data frame.
-        self.predictions = predictions
-
-        # Return the data frame.
-        return predictions
-
-    def forecast(self, x=None):
-
-        '''
-        Generate the out-of-sample forecasts.
-
-        Parameters:
-        __________________________________
+        y: np.array.
+            Past values of target time series, array with shape (n_samples, n_targets) where n_samples is the length
+            of the time series and n_targets is the number of target time series. The number of past samples provided
+            (n_samples) should not be less than the length of the lookback period.
+            
         x: np.array.
-            Features time series, array with shape (n_forecast, n_features) where n_forecast is the decoder length
-            and n_features is the number of features time series.
+            Past and future values of features time series, array with shape (n_samples + n_forecast, n_features) where
+            n_samples is the length of the time series, n_forecast is the decoder length and n_features is the number
+            of features time series. The number of past samples provided (n_samples) should not be less than the length
+            of the lookback period.
 
         Returns:
         __________________________________
         forecasts: pd.DataFrame.
             Data frame including the actual values of the time series and the predicted quantiles.
         '''
+        
+        # Scale the data.
+        y = (y - self.y_min) / (self.y_max - self.y_min)
 
+        if x is not None:
+            x = (x - self.x_min) / (self.x_max - self.x_min)
+            
         # Generate the forecasts.
-        y_encoder = self.y[- self.n_lookback:, :].reshape(1, self.n_lookback, self.n_targets)
+        y_encoder = y[- self.n_lookback:, :].reshape(1, self.n_lookback, self.n_targets)
 
-        if self.x is not None:
-            x_encoder = self.x[- self.n_lookback:, :].reshape(1, self.n_lookback, self.n_features)
-            x_decoder = (x - self.x_min) / (self.x_max - self.x_min)
-            x_decoder = x_decoder.reshape(1, x_decoder.shape[0], x_decoder.shape[1])
-            y_pred = self.model.predict([x_encoder, x_decoder, y_encoder])
+        if x is not None:
+            x_encoder = x[- self.n_lookback - self.n_forecast: - self.n_forecast, :].reshape(1, self.n_lookback, self.n_features)
+            x_decoder = x[- self.n_forecast:, :].reshape(1, self.n_forecast, self.n_features)
+            y_pred = self.model([x_encoder, x_decoder, y_encoder]).numpy()
         else:
-            y_pred = self.model.predict(y_encoder)
+            y_pred = self.model(y_encoder).numpy()
 
         # Organize the forecasts in a data frame.
         columns = ['time_idx']
         columns.extend(['target_' + str(i + 1) for i in range(self.n_targets)])
         columns.extend(['target_' + str(i + 1) + '_' + str(self.q[j]) for i in range(self.n_targets) for j in range(self.n_quantiles)])
 
-        forecasts = pd.DataFrame(columns=columns)
-        forecasts['time_idx'] = np.arange(self.n_samples + self.n_forecast)
+        df = pd.DataFrame(columns=columns)
+        df['time_idx'] = np.arange(self.n_samples + self.n_forecast)
 
         for i in range(self.n_targets):
-            forecasts['target_' + str(i + 1)].iloc[: - self.n_forecast] = self.y_min[i] + (self.y_max[i] - self.y_min[i]) * self.y[:, i]
+            df['target_' + str(i + 1)].iloc[: - self.n_forecast] = self.y_min[i] + (self.y_max[i] - self.y_min[i]) * self.y[:, i]
 
             for j in range(self.n_quantiles):
                 if self.loss == 'parametric':
-                    forecasts['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[- self.n_forecast:] = \
+                    df['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[- self.n_forecast:] = \
                     self.y_min[i] + (self.y_max[i] - self.y_min[i]) * norm_ppf(y_pred[:, :, i, 0], y_pred[:, :, i, 1], self.q[j])
 
                 else:
-                    forecasts['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[- self.n_forecast:] = \
+                    df['target_' + str(i + 1) + '_' + str(self.q[j])].iloc[- self.n_forecast:] = \
                     self.y_min[i] + (self.y_max[i] - self.y_min[i]) * y_pred[:, :, i, j].flatten()
 
-        forecasts = forecasts.astype(float)
-
-        # Save the data frame.
-        self.forecasts = forecasts
-
         # Return the data frame.
-        return forecasts
-
-    def plot_predictions(self):
-
-        '''
-        Plot the in-sample predictions.
-
-        Returns:
-        __________________________________
-        go.Figure.
-        '''
-
-        return plot(self.predictions, self.q, self.n_targets, self.n_quantiles)
-
-    def plot_forecasts(self):
-
-        '''
-        Plot the out-of-sample forecasts.
-
-        Returns:
-        __________________________________
-        go.Figure.
-        '''
-
-        return plot(self.forecasts, self.q, self.n_targets, self.n_quantiles)
+        return df.astype(float)
 
 
 def build_fn_with_covariates(
@@ -397,12 +324,12 @@ def build_fn_with_covariates(
     '''
 
     # Define the inputs.
-    x_encoder = Input(shape=(n_lookback, n_features))
-    x_decoder = Input(shape=(n_forecast, n_features))
-    y_encoder = Input(shape=(n_lookback, n_targets))
+    x_encoder = tf.keras.layers.Input(shape=(n_lookback, n_features))
+    x_decoder = tf.keras.layers.Input(shape=(n_forecast, n_features))
+    y_encoder = tf.keras.layers.Input(shape=(n_lookback, n_targets))
 
     # Concatenate the encoder inputs.
-    encoder_input = Concatenate()([x_encoder, y_encoder])
+    encoder_input = tf.keras.layers.Concatenate()([x_encoder, y_encoder])
 
     # Forward pass the encoder inputs through the encoder module.
     for i in range(len(dilation_rates)):
@@ -436,16 +363,16 @@ def build_fn_with_covariates(
     )
 
     # Forward pass the decoder outputs through the dense layer.
-    decoder_ouput = Dense(units=n_targets * n_outputs)(decoder_ouput)
+    decoder_ouput = tf.keras.layers.Dense(units=n_targets * n_outputs)(decoder_ouput)
 
     # Reshape the decoder output to match the shape required by the loss function.
-    y_decoder = Reshape(target_shape=(n_forecast, n_targets, n_outputs))(decoder_ouput)
+    y_decoder = tf.keras.layers.Reshape(target_shape=(n_forecast, n_targets, n_outputs))(decoder_ouput)
 
     # If using the parametric loss, apply the soft ReLU activation to ensure a positive standard deviation.
     if loss == 'parametric':
         y_decoder = tf.stack([y_decoder[:, :, :, 0], soft_relu(y_decoder[:, :, :, 1])], axis=-1)
 
-    return Model([x_encoder, x_decoder, y_encoder], y_decoder)
+    return tf.keras.models.Model([x_encoder, x_decoder, y_encoder], y_decoder)
 
 
 def build_fn(
@@ -491,7 +418,7 @@ def build_fn(
     '''
 
     # Define the inputs.
-    y_encoder = Input(shape=(n_lookback, n_targets))
+    y_encoder = tf.keras.layers.Input(shape=(n_lookback, n_targets))
 
     # Forward pass the encoder inputs through the encoder module.
     for i in range(len(dilation_rates)):
@@ -515,22 +442,22 @@ def build_fn(
             )
 
     # Apply the ReLU activation to the final encoder output.
-    encoder_output = ReLU()(encoder_output)
+    encoder_output = tf.keras.layers.ReLU()(encoder_output)
 
     # Slice the second dimension of the encoder output to match the output dimension.
     encoder_output = encoder_output[:, - n_forecast:, :]
 
     # Forward pass the encoder outputs through the dense layer.
-    encoder_output = Dense(units=n_targets * n_outputs)(encoder_output)
+    encoder_output = tf.keras.layers.Dense(units=n_targets * n_outputs)(encoder_output)
 
     # Reshape the encoder output to match the shape required by the loss function.
-    y_decoder = Reshape(target_shape=(n_forecast, n_targets, n_outputs))(encoder_output)
+    y_decoder = tf.keras.layers.Reshape(target_shape=(n_forecast, n_targets, n_outputs))(encoder_output)
 
     # If using the parametric loss, apply the soft ReLU activation to ensure a positive standard deviation.
     if loss == 'parametric':
         y_decoder = tf.stack([y_decoder[:, :, :, 0], soft_relu(y_decoder[:, :, :, 1])], axis=-1)
 
-    return Model(y_encoder, y_decoder)
+    return tf.keras.models.Model(y_encoder, y_decoder)
 
 
 def soft_relu(x):
