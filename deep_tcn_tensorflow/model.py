@@ -229,7 +229,7 @@ class DeepTCN():
 
         Returns:
         __________________________________
-        forecasts: pd.DataFrame.
+        df: pd.DataFrame.
             Data frame including the actual values of the time series and the predicted quantiles.
         '''
         
