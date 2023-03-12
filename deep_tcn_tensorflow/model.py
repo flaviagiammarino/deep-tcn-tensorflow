@@ -26,38 +26,28 @@ class DeepTCN():
         Implementation of multivariate time series forecasting model introduced in Chen, Y., Kang, Y., Chen, Y., &
         Wang, Z. (2020). Probabilistic forecasting with temporal convolutional neural network. Neurocomputing, 399,
         491-501.
-
         Parameters:
         __________________________________
         y: np.array.
             Target time series, array with shape (n_samples, n_targets) where n_samples is the length of the time series
             and n_targets is the number of target time series.
-
         x: np.array.
             Features time series, array with shape (n_samples, n_features) where n_samples is the length of the time series
             and n_features is the number of features time series.
-
         forecast_period: int.
             Decoder length.
-
         lookback_period: int.
             Encoder length.
-
         quantiles: list.
             Quantiles of target time series to be predicted.
-
         filters: int.
             Number of filters (or channels) of the convolutional layers in the encoder module.
-
         kernel_size: int.
             Kernel size of the convolutional layers in the encoder module.
-
         dilation_rates: list.
             Dilation rates of the convolutional layers in the encoder module.
-
         units: int.
             Hidden units of dense layers in the decoder module.
-
         loss: str.
             The loss function, either 'nonparametric' or 'parametric'.
         '''
@@ -152,23 +142,23 @@ class DeepTCN():
 
         '''
         Train the model.
-
         Parameters:
         __________________________________
         learning_rate: float.
             Learning rate.
-
         batch_size: int.
             Batch size.
-
         epochs: int.
             Number of epochs.
-
         validation_split: float.
             Fraction of the training data to be used as validation data, must be between 0 and 1.
-
         verbose: int.
             Verbosity mode: 0 = silent, 1 = progress bar, 2 = one line per epoch.
+        
+        Returns:
+        __________________________________
+        history: keras.callbacks.History object.
+            Returns akeras.callbacks.History.history object which contains the training metrics.
         '''
 
         # Compile the model.
@@ -189,7 +179,7 @@ class DeepTCN():
         # Fit the model.
         if self.x is not None:
 
-            self.model.fit(
+            history = self.model.fit(
                 x=[self.x_encoder, self.x_decoder, self.y_encoder],
                 y=self.y_decoder,
                 batch_size=batch_size,
@@ -200,7 +190,7 @@ class DeepTCN():
 
         else:
 
-            self.model.fit(
+            history = self.model.fit(
                 x=self.y_encoder,
                 y=self.y_decoder,
                 batch_size=batch_size,
@@ -208,12 +198,15 @@ class DeepTCN():
                 validation_split=validation_split,
                 verbose=verbose
             )
+            
+          
+        return history    
+
 
     def forecast(self, y, x=None):
 
         '''
         Generate the forecasts.
-
         Parameters:
         __________________________________
         y: np.array.
@@ -226,7 +219,6 @@ class DeepTCN():
             n_samples is the length of the time series, n_forecast is the decoder length and n_features is the number
             of features time series. The number of past samples provided (n_samples) should not be less than the length
             of the lookback period.
-
         Returns:
         __________________________________
         df: pd.DataFrame.
@@ -287,38 +279,28 @@ def build_fn_with_covariates(
 
     '''
     Build the model with covariates.
-
     Parameters:
     __________________________________
     n_targets: int.
         Number of target time series.
-
     n_features: int.
         Number of features time series.
-
     n_outputs: int.
         Number of outputs, equal to 2 when the loss is parametric (in which case the two outputs are the mean
         and standard deviation of the Normal distribution), equal to the number of quantiles when the loss is
         nonparametric.
-
     n_lookback: int.
         Encoder length.
-
     n_forecast: int.
         Decoder length.
-
     filters: int.
         Number of filters (or channels) of the convolutional layers in the encoder module.
-
     kernel_size: int.
         Kernel size of the convolutional layers in the encoder module.
-
     dilation_rates: list.
         Dilation rates of the convolutional layers in the encoder module.
-
     units: int.
         Hidden units of dense layers in the decoder module.
-
     loss: str.
         The loss function, either 'nonparametric' or 'parametric'.
     '''
@@ -387,32 +369,24 @@ def build_fn(
 
     '''
     Build the model without covariates.
-
     Parameters:
     __________________________________
     n_targets: int.
         Number of target time series.
-
     n_outputs: int.
         Number of outputs, equal to 2 when the loss is parametric (in which case the two outputs are the mean
         and standard deviation of the Normal distribution), equal to the number of quantiles when the loss is
         nonparametric.
-
     n_lookback: int.
         Encoder length.
-
     n_forecast: int.
         Decoder length.
-
     filters: int.
         Number of filters (or channels) of the convolutional layers in the encoder module.
-
     kernel_size: int.
         Kernel size of the convolutional layers in the encoder module.
-
     dilation_rates: list.
         Dilation rates of the convolutional layers in the encoder module.
-
     loss: str.
         The loss function, either 'nonparametric' or 'parametric'.
     '''
