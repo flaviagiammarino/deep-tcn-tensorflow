@@ -137,6 +137,7 @@ class DeepTCN():
             learning_rate=0.001,
             batch_size=32,
             epochs=100,
+            callbacks=[],
             validation_split=0,
             verbose=1):
 
@@ -150,6 +151,8 @@ class DeepTCN():
             Batch size.
         epochs: int.
             Number of epochs.
+        callbacks: list.
+            A list containing callback functions.
         validation_split: float.
             Fraction of the training data to be used as validation data, must be between 0 and 1.
         verbose: int.
@@ -184,6 +187,7 @@ class DeepTCN():
                 y=self.y_decoder,
                 batch_size=batch_size,
                 epochs=epochs,
+                callbacks=callbacks,
                 validation_split=validation_split,
                 verbose=verbose
             )
@@ -195,6 +199,7 @@ class DeepTCN():
                 y=self.y_decoder,
                 batch_size=batch_size,
                 epochs=epochs,
+                callbacks=callbacks,
                 validation_split=validation_split,
                 verbose=verbose
             )
