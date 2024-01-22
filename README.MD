@@ -10,7 +10,7 @@ and Wang, Z. (2020). Probabilistic forecasting with temporal convolutional neura
 
 <img src=diagram.png style="width:90%;margin-top:30px;margin-bottom:25px"/>
 
-*Model architecture (source: [doi: 10.48550/arXiv.1906.04397](https://doi.org/10.48550/arXiv.1906.04397))*
+*Model architecture (source: [doi: 10.1016/j.neucom.2020.03.011](https://doi.org/10.1016/j.neucom.2020.03.011))*
 
 ## Dependencies
 ```bash
